@@ -77,19 +77,7 @@
 			}
 
 			function sendData(res) {
-				$.ajax({
-					type: 'POST',
-					url: 'http://azureappelim.azurewebsites.net/',
-					crossDomain: true,
-					data: '' + res,
-					dataType: 'json',
-					success: function(responseData, textStatus, jqXHR) {
-						console.log("success : " + "\n " + responseData + "\n " + textStatus + "\n " + jqXHR);
-					},
-					error: function (responseData, textStatus, errorThrown) {
-						console.log("failure : " + "\n " + responseData + "\n " + textStatus + "\n " + errorThrown);
-					}
-				});
+				
 			}
 
 			// Script execution
