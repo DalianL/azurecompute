@@ -30,19 +30,46 @@
 		  	var table = client.getTable("SmsTable");
 
 		  	function success(results) {
-		  		console.log("Read success :");
+		  		console.log("Read success.");
 				var numItemsRead = results.length;
 
 				for (var i = 0 ; i < results.length ; i++) {
-				   var row = results[i].Text;
-				   console.log(i + " " + row);
-				   // Each row is an object - the properties are the columns
+					// Handling only the last line of the table
+					if (i == results.length - 1) {
+						var row = results[i].Text;
+						var smsArray = row.match(/\[(.*?)\]/gi);
+
+						var numArray = new Map();
+				   		for (let i = 0; i < smsArray.length; i++) {
+				   			let firstNum = smsArray[i].split(",")[0].split("[")[1];
+				   			if (numArray.has(firstNum)) {
+				   				numArray.set(firstNum, numArray.get(firstNum) + 1)
+				   			} else {
+				   				numArray.set(firstNum, 1)
+				   			}
+				   		}
+
+				   		console.log(mostContacted(numArray));
+					}
 				}
 			}
 
 			function failure(error) {
-				console.log("Read fail");
+				console.log("Read fail.");
 				throw new Error('Error loading data: ', error);
+			}
+
+			function mostContacted(map) {
+				var maxkey = 0;
+				var maxval = 0;
+				for (var [key, value] of map) {
+					if (value > maxval) {
+						maxkey = key;
+						maxval = value;
+					}
+				}
+
+				return maxkey;
 			}
 
 			table
