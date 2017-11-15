@@ -32,7 +32,7 @@
 		  	var result;
 
 		  	function success(results) {
-		  		console.log("Read success.");
+		  		//console.log("Read success.");
 				var numItemsRead = results.length;
 
 				for (var i = 0 ; i < results.length ; i++) {
@@ -59,7 +59,7 @@
 			}
 
 			function failure(error) {
-				console.log("Read fail.");
+				//console.log("Failure.");
 				throw new Error('Error loading data: ', error);
 			}
 
@@ -77,17 +77,22 @@
 			}
 
 			function sendData(res) {
-				console.log("res = " + res);
-				tableRes.insert(function insertData(res) {
-					var temp = res.execute();
-					console.log("temp = " + temp);
-					return temp;
-				});
+				console.log("Num to send = " + res);
+
+				return tableRes
+					.insert( {num: res} )
+					.then(function (response) {
+						//console.log("Sucess : " + response);
+					}, function (error) {
+						//console.log("Error : " + error);
+					});
 			}
 
 			// Script execution
 
-			table.read().then(success, failure);
+			table
+				.read()
+				.then(success, failure);
 
 		  </script>
 
