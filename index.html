@@ -28,6 +28,7 @@
 		  <script>
 		  	var client = new WindowsAzure.MobileServiceClient("http://smsanalysisapp.azurewebsites.net");
 		  	var table = client.getTable("SmsTable");
+		  	var result;
 
 		  	function success(results) {
 		  		console.log("Read success.");
@@ -49,7 +50,10 @@
 				   			}
 				   		}
 
-				   		console.log(mostContacted(numArray));
+				   		result = mostContacted(numArray);
+				   		console.log("result = " + result);
+				   		
+				   		sendData(result);
 					}
 				}
 			}
@@ -72,9 +76,26 @@
 				return maxkey;
 			}
 
-			table
-				.read()
-				.then(success, failure);
+			function sendData(res) {
+				$.ajax({
+					type: 'POST',
+					url: 'http://azureappelim.azurewebsites.net/',
+					crossDomain: true,
+					data: '' + res,
+					dataType: 'json',
+					success: function(responseData, textStatus, jqXHR) {
+						console.log("success : " + "\n " + responseData + "\n " + textStatus + "\n " + jqXHR);
+					},
+					error: function (responseData, textStatus, errorThrown) {
+						console.log("failure : " + "\n " + responseData + "\n " + textStatus + "\n " + errorThrown);
+					}
+				});
+			}
+
+			// Script execution
+
+			table.read().then(success, failure);
+
 
 		  </script>
 
