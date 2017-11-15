@@ -28,6 +28,7 @@
 		  <script>
 		  	var client = new WindowsAzure.MobileServiceClient("http://smsanalysisapp.azurewebsites.net");
 		  	var table = client.getTable("SmsTable");
+		  	var tableRes = client.getTable("ResultTable");
 		  	var result;
 
 		  	function success(results) {
@@ -51,7 +52,6 @@
 				   		}
 
 				   		result = mostContacted(numArray);
-				   		console.log("result = " + result);
 				   		
 				   		sendData(result);
 					}
@@ -77,13 +77,17 @@
 			}
 
 			function sendData(res) {
-				
+				console.log("res = " + res);
+				tableRes.insert(function insertData(res) {
+					var temp = res.execute();
+					console.log("temp = " + temp);
+					return temp;
+				});
 			}
 
 			// Script execution
 
 			table.read().then(success, failure);
-
 
 		  </script>
 
