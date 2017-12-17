@@ -29,9 +29,11 @@
 		  	var client = new WindowsAzure.MobileServiceClient("http://smsanalysisapp.azurewebsites.net");
 		  	var table = client.getTable("SmsTable");
 		  	var tableRes = client.getTable("ResultTable");
+		  	var intervalId;
+		  	var lastEntry;
 		  	var result;
 
-		  	function success(results) {
+		  	function firstSuccess(results) {
 		  		//console.log("Read success.");
 				var numItemsRead = results.length;
 
@@ -52,8 +54,45 @@
 				   		}
 
 				   		result = mostContacted(numArray);
+
+				   		lastEntry = result;
+
+				   		console.log("Last entry : " + lastEntry);
 				   		
-				   		sendData(result);
+	   					postSuccess();
+					}
+				}
+			}
+
+			function success(results) {
+		  		//console.log("Read success.");
+				var numItemsRead = results.length;
+
+				for (var i = 0 ; i < results.length ; i++) {
+					// Handling only the last line of the table
+					if (i == results.length - 1) {
+						var row = results[i].Text;
+						var smsArray = row.match(/\[(.*?)\]/gi);
+
+						var numArray = new Map();
+				   		for (let i = 0; i < smsArray.length; i++) {
+				   			let firstNum = smsArray[i].split(",")[0].split("[")[1];
+				   			if (numArray.has(firstNum)) {
+				   				numArray.set(firstNum, numArray.get(firstNum) + 1)
+				   			} else {
+				   				numArray.set(firstNum, 1)
+				   			}
+				   		}
+
+				   		result = mostContacted(numArray);
+
+				   		console.log("Checking last entry : " + result);				   		
+				   		
+				   		if (result != lastEntry) {
+				   			console.log("--- Found new entry, sending to result table ---");
+				   			sendData(result);
+				   			lastEntry = result;
+				   		}
 					}
 				}
 			}
@@ -76,6 +115,14 @@
 				return maxkey;
 			}
 
+			function postSuccess() {
+				intervalId = setInterval(function (j) {
+					table
+						.read()
+						.then(success, failure);
+				}, 5000);
+			}
+
 			function sendData(res) {
 				console.log("Num to send = " + res);
 
@@ -88,11 +135,11 @@
 					});
 			}
 
-			// Script execution
+			// First read
 
 			table
 				.read()
-				.then(success, failure);
+				.then(firstSuccess, failure);
 
 		  </script>
 		  
