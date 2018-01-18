@@ -30,10 +30,9 @@
 		  	var table = client.getTable("SmsTable");
 		  	var tableRes = client.getTable("ResultTable");
 		  	var intervalId;
-		  	var lastEntry;
 		  	var result;
 
-		  	function firstSuccess(results) {
+		  	function success(results) {
 		  		//console.log("Read success.");
 				var numItemsRead = results.length;
 
@@ -54,15 +53,61 @@
 				   		}
 
 				   		result = mostContacted(numArray);
-
-				   		lastEntry = result;
-
-				   		console.log("Last entry : " + lastEntry);
 				   		
-	   					postSuccess();
+				   		updateData(result);
+
+	   					//postSuccess();
 					}
 				}
 			}
+
+			function failure(error) {
+				//console.log("Failure.");
+				throw new Error('Error loading data: ', error);
+			}
+
+			function mostContacted(map) {
+				var maxkey = 0;
+				var maxval = 0;
+				for (var [key, value] of map) {
+					if (value > maxval) {
+						maxkey = key;
+						maxval = value;
+					}
+				}
+
+				return maxkey;
+			}
+
+			function updateData(res) {
+				console.log("Num to update = " + res);
+
+				var updateItem = {
+					id: '24fec1af-a25f-419f-abee-c98121da9c7d',
+					num: res
+				}
+
+				tableRes
+					.update(updateItem)
+					.then(function (response) {
+						console.log("Success, sent : " + response);
+					}, function (error) {
+						console.log("Error : " + error);
+					});
+			}
+
+			// Script execution starts here
+
+			table
+				.read()
+				.then(success, failure);
+
+		  </script>
+		  
+	</body>
+
+</html>
+<!-- 
 
 			function success(results) {
 		  		//console.log("Read success.");
@@ -89,7 +134,7 @@
 				   		console.log("Checking last entry : " + result);				   		
 				   		
 				   		if (result != lastEntry) {
-				   			console.log("--- Found new entry, sending to result table ---");
+				   			console.log("- Found new entry, sending to result table -");
 				   			sendData(result);
 				   			lastEntry = result;
 				   		}
@@ -97,30 +142,12 @@
 				}
 			}
 
-			function failure(error) {
-				//console.log("Failure.");
-				throw new Error('Error loading data: ', error);
-			}
-
-			function mostContacted(map) {
-				var maxkey = 0;
-				var maxval = 0;
-				for (var [key, value] of map) {
-					if (value > maxval) {
-						maxkey = key;
-						maxval = value;
-					}
-				}
-
-				return maxkey;
-			}
-
 			function postSuccess() {
 				intervalId = setInterval(function (j) {
 					table
 						.read()
 						.then(success, failure);
-				}, 5000);
+				}, 3600000);
 			}
 
 			function sendData(res) {
@@ -129,20 +156,8 @@
 				return tableRes
 					.insert( {num: res} )
 					.then(function (response) {
-						//console.log("Sucess : " + response);
+						//console.log("Success : " + response);
 					}, function (error) {
 						//console.log("Error : " + error);
 					});
-			}
-
-			// First read
-
-			table
-				.read()
-				.then(firstSuccess, failure);
-
-		  </script>
-		  
-	</body>
-
-</html>
+			} -->
