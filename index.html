@@ -22,6 +22,8 @@
 
 		<script src="https://zumo.blob.core.windows.net/sdk/azure-mobile-apps-client.min.js"></script>
 
+		<script src='./js/randomForest.js'></script>
+
 	</head>
 
 	<body>
@@ -29,6 +31,7 @@
 		  	var client = new WindowsAzure.MobileServiceClient("http://smsanalysisapp.azurewebsites.net");
 		  	var table = client.getTable("SmsTable");
 		  	var tableRes = client.getTable("ResultTable");
+		  	var learner;
 		  	var intervalId;
 		  	var result;
 
@@ -40,6 +43,12 @@
 					// Handling only the last line of the table
 					if (i == results.length - 1) {
 						var row = results[i].Text;
+
+						// Using the machine learning algorithm
+						let cleanData = cleanUp(results[i].Text);
+						console.log(cleanData);
+
+						// Computing the most contacted person
 						var smsArray = row.match(/\[(.*?)\]/gi);
 
 						var numArray = new Map();
@@ -59,6 +68,33 @@
 	   					//postSuccess();
 					}
 				}
+			}
+
+			function cleanUp(data) {
+				var splitData = data.split('=');
+				var cleanedData1 = [];
+				var cleanedData2 = [];
+				var dataAmount = 100;
+
+				for (let i = 1; i < dataAmount; i++) {
+					cleanedData1.push(splitData[i].substring(0, splitData[i].length - 4));
+				}
+				cleanedData1.push(splitData[dataAmount].substring(0, splitData[dataAmount].length - 1));
+				
+				cleanedData1.forEach(function (i) {
+					let tmpData = [];
+					i.split(', ').forEach(function (j) {
+						if (j[0] == '[') {
+							j = j.substring(1, j.length);
+						} else if (j[j.length -1] == ']') {
+							j = j.substring(0, j.length - 1);
+						}
+						tmpData.push(j);
+					})
+					cleanedData2.push(tmpData);
+				});
+
+				return cleanedData2;
 			}
 
 			function failure(error) {
