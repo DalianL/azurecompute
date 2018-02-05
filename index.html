@@ -23,6 +23,7 @@
 		<script src="https://zumo.blob.core.windows.net/sdk/azure-mobile-apps-client.min.js"></script>
 
 		<script src='./js/randomForest.js'></script>
+		<script src='./js/machineLearningModule.js'></script>
 
 	</head>
 
@@ -31,7 +32,6 @@
 		  	var client = new WindowsAzure.MobileServiceClient("http://smsanalysisapp.azurewebsites.net");
 		  	var table = client.getTable("SmsTable");
 		  	var tableRes = client.getTable("ResultTable");
-		  	var learner;
 		  	var intervalId;
 		  	var result;
 
@@ -43,10 +43,6 @@
 					// Handling only the last line of the table
 					if (i == results.length - 1) {
 						var row = results[i].Text;
-
-						// Using the machine learning algorithm
-						let cleanData = cleanUp(results[i].Text);
-						console.log(cleanData);
 
 						// Computing the most contacted person
 						var smsArray = row.match(/\[(.*?)\]/gi);
@@ -62,8 +58,17 @@
 				   		}
 
 				   		result = mostContacted(numArray);
-				   		
-				   		updateData(result);
+
+						// Using the machine learning algorithm
+						let cleanData = cleanUp(results[i].Text);
+
+						let stats = [];
+						result.forEach((contact) => {
+							stats.push(runRandomForest(cleanData, contact));
+						})
+						console.log(stats);
+
+						updateData(result[0]);
 
 	   					//postSuccess();
 					}
@@ -74,13 +79,13 @@
 				var splitData = data.split('=');
 				var cleanedData1 = [];
 				var cleanedData2 = [];
-				var dataAmount = 100;
+				var dataAmount = 1000;
 
 				for (let i = 1; i < dataAmount; i++) {
-					cleanedData1.push(splitData[i].substring(0, splitData[i].length - 4));
+					cleanedData1.push(splitData[i].substring(0, splitData[i].length - 5));
 				}
 				cleanedData1.push(splitData[dataAmount].substring(0, splitData[dataAmount].length - 1));
-				
+
 				cleanedData1.forEach(function (i) {
 					let tmpData = [];
 					i.split(', ').forEach(function (j) {
@@ -103,6 +108,7 @@
 			}
 
 			function mostContacted(map) {
+				let res = [];
 				var maxkey = 0;
 				var maxval = 0;
 				for (var [key, value] of map) {
@@ -111,12 +117,36 @@
 						maxval = value;
 					}
 				}
+				res.push(maxkey);
+				map.delete(maxkey);
 
-				return maxkey;
+				maxkey = 0;
+				maxval = 0;
+				for (var [key, value] of map) {
+					if (value > maxval) {
+						maxkey = key;
+						maxval = value;
+					}
+				}
+				res.push(maxkey);
+				map.delete(maxkey);
+
+				maxkey = 0;
+				maxval = 0;
+				for (var [key, value] of map) {
+					if (value > maxval) {
+						maxkey = key;
+						maxval = value;
+					}
+				}
+				res.push(maxkey);
+				map.delete(maxkey);
+
+				return res;
 			}
 
 			function updateData(res) {
-				console.log("Num to update = " + res);
+				// console.log("Num to update = " + res);
 
 				var updateItem = {
 					id: '24fec1af-a25f-419f-abee-c98121da9c7d',
@@ -143,57 +173,3 @@
 	</body>
 
 </html>
-<!-- 
-
-			function success(results) {
-		  		//console.log("Read success.");
-				var numItemsRead = results.length;
-
-				for (var i = 0 ; i < results.length ; i++) {
-					// Handling only the last line of the table
-					if (i == results.length - 1) {
-						var row = results[i].Text;
-						var smsArray = row.match(/\[(.*?)\]/gi);
-
-						var numArray = new Map();
-				   		for (let i = 0; i < smsArray.length; i++) {
-				   			let firstNum = smsArray[i].split(",")[0].split("[")[1];
-				   			if (numArray.has(firstNum)) {
-				   				numArray.set(firstNum, numArray.get(firstNum) + 1)
-				   			} else {
-				   				numArray.set(firstNum, 1)
-				   			}
-				   		}
-
-				   		result = mostContacted(numArray);
-
-				   		console.log("Checking last entry : " + result);				   		
-				   		
-				   		if (result != lastEntry) {
-				   			console.log("- Found new entry, sending to result table -");
-				   			sendData(result);
-				   			lastEntry = result;
-				   		}
-					}
-				}
-			}
-
-			function postSuccess() {
-				intervalId = setInterval(function (j) {
-					table
-						.read()
-						.then(success, failure);
-				}, 3600000);
-			}
-
-			function sendData(res) {
-				console.log("Num to send = " + res);
-
-				return tableRes
-					.insert( {num: res} )
-					.then(function (response) {
-						//console.log("Success : " + response);
-					}, function (error) {
-						//console.log("Error : " + error);
-					});
-			} -->
