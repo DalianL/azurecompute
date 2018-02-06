@@ -59,16 +59,20 @@
 
 				   		result = mostContacted(numArray);
 
-						// Using the machine learning algorithm
 						let cleanData = cleanUp(results[i].Text);
 
 						let stats = [];
 						result.forEach((contact) => {
+							// Using the machine learning algorithm
 							stats.push(runRandomForest(cleanData, contact));
 						})
-						console.log(stats);
+						result.push(stats);
 
-						updateData(result[0]);
+						console.log('Sending to result db : ');
+						console.log('Most contacted : ', result);
+						console.log('Stats : ', result[3]);
+
+						updateData(result);
 
 	   					//postSuccess();
 					}
@@ -156,9 +160,9 @@
 				tableRes
 					.update(updateItem)
 					.then(function (response) {
-						console.log("Success, sent : " + response);
+						// console.log("Success, sent : ", response);
 					}, function (error) {
-						console.log("Error : " + error);
+						// console.log("Error : ", error);
 					});
 			}
 

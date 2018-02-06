@@ -1,5 +1,4 @@
-body
-{
+body {
 	font: 400 15px Lato, sans-serif;
     line-height: 1.8;
     color: #818181;
@@ -27,13 +26,11 @@ body
     color: #f4511e;
 }
 
-footer
-{
+footer {
 	margin-top:2%;
 }
 
-.col-md-4
-{
+.col-md-4 {
 	background-color: #f2f2f2;
 	padding:5%;
 }

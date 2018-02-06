@@ -38,7 +38,7 @@ function runRandomForest(fullData, name) {
 	let finalRes = [0, 0];
 
 	for (let i = 0; i < iterations; i++) {
-		options.numTrees = 100;
+		options.numTrees = 1000;
 		options.maxDepth = 10;
 		options.numTries = 10;
 		forest.train(data, labels, options);
