@@ -168,9 +168,20 @@
 
 			// Script execution starts here
 
+			// table
+			// 	.read()
+			// 	.then(success, failure);
+
 			table
 				.read()
 				.then(success, failure);
+
+
+			intervalId = setInterval(function () {
+				table
+					.read()
+					.then(success, failure);
+			}, 7200000);
 
 		  </script>
 		  
