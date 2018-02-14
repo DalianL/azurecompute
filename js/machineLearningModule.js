@@ -56,7 +56,7 @@ function labelize(testData) {
 	// -1 is chat, 1 is mail
 
 	for (let i = 0; i < N; i++) {
-		if (testData[i][11] > 2) {
+		if (testData[i][11] >= 2) {
 			labels[i] = -1;
 		} else {
 			if (testData[i][23] > 3) {
