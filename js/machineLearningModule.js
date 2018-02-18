@@ -13,6 +13,7 @@ options.type = 1;
 function runRandomForest(fullData, name) {
 	// console.log('For ' + name + ' : '); // , fullData, name);
 
+	// Only keep the columns with relevant data for the machine learning
 	let testData = [];
 	for (let i = 0; i < fullData.length; i++) {
 		if (fullData[i][0] == name) {
@@ -24,7 +25,8 @@ function runRandomForest(fullData, name) {
 		}
 	}
 
-	N = Math.floor(testData.length / 10); // number of data points to train with
+	// Number of data points to train with
+	N = Math.floor(testData.length / 10);
 	data = new Array(N);
 	labels = new Array(N);
 
@@ -32,11 +34,14 @@ function runRandomForest(fullData, name) {
 		data[i] = testData[i];
 	}
 
+	// Assign the labels to train with
 	labelize(data);
 
 	let iterations = 10;
 	let finalRes = [0, 0];
 
+	// Train and retrain based on successive predictions
+	// Higher amount of iterations is slower but supposedly more accurate
 	for (let i = 0; i < iterations; i++) {
 		options.numTrees = 1000;
 		options.maxDepth = 10;
@@ -52,9 +57,9 @@ function runRandomForest(fullData, name) {
 	return [finalRes[0] / N * 10, 100 - finalRes[0] / N * 10];
 }
 
+// Automatic labelizer according to subjective criterias
+// -1 is chat, 1 is mail
 function labelize(testData) {
-	// -1 is chat, 1 is mail
-
 	for (let i = 0; i < N; i++) {
 		if (testData[i][11] >= 2) {
 			labels[i] = -1;
@@ -72,6 +77,8 @@ function labelize(testData) {
 	}
 }
 
+// Assign result row to chat or mail depending on chosen threshold
+// Here 0.5 is chosen subjectively, can be changed
 function analyze(probs) {
 	let max = maxval(probs);
 	let chatAmount = 0;

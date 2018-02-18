@@ -44,21 +44,23 @@
 					if (i == results.length - 1) {
 						var row = results[i].Text;
 
-						// Computing the most contacted person
+						// Computing the most contacted people (3 contacts)
 						var smsArray = row.match(/\[(.*?)\]/gi);
 
-						var numArray = new Map();
+						// Count the amount of texts for each person
+						var numMap = new Map();
 				   		for (let i = 0; i < smsArray.length; i++) {
 				   			let firstNum = smsArray[i].split(",")[0].split("[")[1];
-				   			if (numArray.has(firstNum)) {
-				   				numArray.set(firstNum, numArray.get(firstNum) + 1)
+				   			if (numMap.has(firstNum)) {
+				   				numMap.set(firstNum, numMap.get(firstNum) + 1)
 				   			} else {
-				   				numArray.set(firstNum, 1)
+				   				numMap.set(firstNum, 1)
 				   			}
 				   		}
 
-				   		result = mostContacted(numArray);
+				   		result = mostContacted(numMap);
 
+						// Cleans up the data so that it can be usable as an Array
 						let cleanData = cleanUp(results[i].Text);
 
 						let stats = [];
@@ -67,6 +69,21 @@
 							stats.push(runRandomForest(cleanData, contact));
 						})
 						result.push(stats);
+
+						let interval = new Date().getHours();
+						if (interval < 6) {
+							interval = 0;
+						} else if (interval < 11) {
+							interval = 1;
+						} else if (interval < 15) {
+							interval = 2;
+						} else if (interval < 19) {
+							interval = 3;
+						} else if (interval < 24) {
+							interval = 4;
+						}
+
+						result.push(mostLikelyContacted(cleanData, interval));
 
 						console.log('Sending to result db : ');
 						console.log('Most contacted : ', result);
@@ -149,6 +166,31 @@
 				return res;
 			}
 
+			function mostLikelyContacted(data, interval) {
+				// Wanted data contains only the data for the current interval
+				let wantedData = [];
+				// First interval indicative column is at index 7
+				// So the right interval is base + current interval
+				let wantedTimeInterval = 7 + interval;
+				for (let i = 0; i < data.length; i++) {
+					if (data[i][wantedTimeInterval] == 1) {
+						wantedData.push(data[i]);
+					}
+				}
+
+				var map = new Map();
+		   		for (let i = 0; i < wantedData.length; i++) {
+		   			let firstNum = wantedData[i][0];
+		   			if (map.has(firstNum)) {
+		   				map.set(firstNum, map.get(firstNum) + 1)
+		   			} else {
+		   				map.set(firstNum, 1)
+		   			}
+		   		}
+
+		   		return map.entries().next().value[0];
+			}
+
 			function updateData(res) {
 				// console.log("Num to update = " + res);
 
@@ -176,7 +218,8 @@
 				.read()
 				.then(success, failure);
 
-
+			// Check every 2 hours (can be changed) for new data, preferably halfway
+			// through the client's data update delay
 			intervalId = setInterval(function () {
 				table
 					.read()
